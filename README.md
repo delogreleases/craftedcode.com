@@ -3,18 +3,25 @@
 Static site: plain HTML, CSS and a little JavaScript. Upload the whole folder to any static host
 (Netlify, Vercel, GitHub Pages, cPanel).
 
-| Page | File |
-|---|---|
-| Home (who we are, commitments, services, products, process) | `index.html` |
-| Product catalogue | `products.html` |
-| ChitTill product page | `products/chittill.html` |
-| Contact | `contact.html` |
+Every page lives in its own folder, so addresses are clean (`…/about/`, `…/products/chittill/`): no `.html`, no `#`.
+
+| Page | Address | File |
+|---|---|---|
+| Home (hero, products, the studio) | `/` | `index.html` |
+| About (who we are, our commitments) | `/about/` | `about/index.html` |
+| Services (what we build, how we work) | `/services/` | `services/index.html` |
+| Product catalogue | `/products/` | `products/index.html` |
+| ChitTill product page | `/products/chittill/` | `products/chittill/index.html` |
+| Contact | `/contact/` | `contact/index.html` |
+
+`products.html`, `contact.html` and `products/chittill.html` are small redirect pages so old links and bookmarks still
+work. Old `index.html#about` / `#services` links forward to the new pages too (`assets/js/main.js`). In-page links (the
+ChitTill sub-menu, for example) scroll without adding `#` to the address.
 
 ## Preview
 
-- Quick look: double-click `index.html`.
-- Like the real hosted site (smooth page-to-page transitions): double-click `preview.bat`, which serves the folder
-  on http://localhost:5500. Browsers switch page transitions off for files opened straight from disk.
+Double-click `preview.bat`. It serves the folder on http://localhost:5500. Folder addresses like `about/` and the smooth
+page-to-page transitions only work over http, so opening the files straight from disk is no longer enough.
 
 ## Edit shared content: `assets/js/site-data.js`, then rebuild
 
@@ -38,7 +45,7 @@ It rewrites only the parts between `<!-- build:name -->` and `<!-- /build:name -
   Remove the `download` block to hide that product's download buttons.
 - **Add a product:**
   1. Put its images in `assets/img/<slug>/` (an icon, plus screenshots at 2880×1800 and 1440×900).
-  2. Copy `products/chittill.html` to `products/<slug>.html` and change the text and images.
+  2. Copy the folder `products/chittill/` to `products/<slug>/` and change the text and images in its `index.html`.
   3. Add an entry to `products` in `site-data.js`, then run `node tools/build.mjs`.
 
   When products have more than one `category`, filter buttons appear on the Products page.

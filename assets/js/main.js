@@ -11,6 +11,54 @@
   const $$ = (s, r = document) => [...r.querySelectorAll(s)]
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v))
 
+  /* ---------- Opened straight from disk (file://) ----------
+     Clean folder links (about/, products/chittill/) need a web server to open their index.html; from disk the
+     browser shows a file listing instead. So on file:// only, point those links at the folder's index.html.
+     Hosted online (http/https) nothing changes and the addresses stay clean. */
+  const LOCAL = location.protocol === 'file:'
+  const toFile = (href) => {
+    if (!LOCAL || /^([a-z]+:|#|\/\/)/i.test(href)) return href
+    const m = href.match(/^([^?#]*)(.*)$/)
+    const path = m[1]
+    return path === '' || path.endsWith('/') ? `${path || './'}index.html${m[2]}` : href
+  }
+  if (LOCAL) $$('a[href]').forEach((a) => { const h = a.getAttribute('href'); const f = toFile(h); if (f !== h) a.setAttribute('href', f) })
+  // Page-to-page transitions are skipped where the browser doesn't allow them (e.g. file://); it reports that as a
+  // rejected promise, so mark those as handled to keep the console clean.
+  const quiet = (vt) => { if (vt) ['ready', 'finished', 'updateCallbackDone'].forEach((k) => vt[k]?.catch?.(() => {})) }
+  addEventListener('pagereveal', (e) => quiet(e.viewTransition))
+  addEventListener('pageswap', (e) => quiet(e.viewTransition))
+
+  /* ---------- Clean addresses: a #fragment never stays in the address bar ----------
+     Old links such as index.html#about forward to the page that now holds that section;
+     any other fragment is removed once the browser has scrolled to it. */
+  const LEGACY = { about: 'about/', commitments: 'about/', services: 'services/', process: 'services/' }
+  if (location.hash) {
+    const id = decodeURIComponent(location.hash.slice(1))
+    if (!document.getElementById(id) && LEGACY[id]) {
+      location.replace(toFile((doc.dataset.root || '') + LEGACY[id]))
+      return
+    }
+    const target = document.getElementById(id)
+    history.replaceState(history.state, '', location.pathname + location.search)
+    if (target) requestAnimationFrame(() => target.scrollIntoView({ block: 'start', behavior: 'instant' }))
+  }
+  addEventListener('hashchange', () => history.replaceState(history.state, '', location.pathname + location.search))
+  // Same-page links (#features, skip link…) scroll smoothly without writing the fragment into the URL.
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest && e.target.closest('a[href^="#"]')
+    if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+    const id = a.getAttribute('href').slice(1)
+    const target = id && document.getElementById(id)
+    if (!target) return
+    e.preventDefault()
+    target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' })
+    if (a.classList.contains('skip')) {
+      target.setAttribute('tabindex', '-1')
+      target.focus({ preventScroll: true })
+    }
+  })
+
   /* ---------- Reveal on scroll ----------
      Anything already on screen at load is shown at once (no fade), so a page
      never "re-animates" when you navigate to it. Only content further down fades in. */
@@ -180,7 +228,9 @@
     const light = $('.vimg-light', viewer)
     const dark = $('.vimg-dark', viewer)
     const cap = $('.viewer__cap', viewer)
-    const base = viewer.dataset.viewer
+    // data-viewer is relative to the site root; data-root on <html> (written by the build) says how deep
+    // this page is, so the path stays right wherever the page lives (products/chittill/ → ../../).
+    const base = (doc.dataset.root || '') + viewer.dataset.viewer
     const preload = (s) => new Promise((res) => { const im = new Image(); im.onload = im.onerror = res; im.src = s })
     // Warm the cache once the viewer is close, so switching tabs is instant.
     new IntersectionObserver((en, o) => {
@@ -233,7 +283,7 @@
         toast = document.createElement('div')
         toast.className = 'toast'
         toast.setAttribute('role', 'status')
-        toast.innerHTML = `<svg class="i" aria-hidden="true"><use href="#i-download"/></svg><span>The download is coming soon. Meanwhile, we'll set it up for you in a free demo.</span><a href="${root}contact.html?interest=demo">Book a demo</a>`
+        toast.innerHTML = `<svg class="i" aria-hidden="true"><use href="#i-download"/></svg><span>The download is coming soon. Meanwhile, we'll set it up for you in a free demo.</span><a href="${toFile(root + 'contact/?interest=demo')}">Book a demo</a>`
         document.body.append(toast)
       }
       requestAnimationFrame(() => toast.classList.add('is-on'))

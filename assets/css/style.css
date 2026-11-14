@@ -911,8 +911,9 @@ kbd { font-family: ui-monospace, 'Cascadia Code', Menlo, monospace; font-size: 1
 .js .reveal:not(.is-in) { opacity: 0; transform: translateY(14px); }
 .js .reveal.no-anim { transition: none; }
 
-/* ---------- Smooth page-to-page navigation (View Transitions, Chrome/Edge/Safari) ---------- */
-@view-transition { navigation: auto; }
+/* ---------- Smooth page-to-page navigation (View Transitions, Chrome/Edge/Safari) ----------
+   The opt-in (@view-transition { navigation: auto }) is added by each page's head script, and only when the
+   site is served over http(s): browsers refuse transitions between files opened from disk and log errors. */
 /* Named on the bar itself: a view-transition-name makes its element the blur boundary, so naming the
    outer header would stop the glass bar's backdrop blur from seeing the page behind it. */
 .hdr__bar { view-transition-name: site-header; }
@@ -976,8 +977,23 @@ kbd { font-family: ui-monospace, 'Cascadia Code', Menlo, monospace; font-size: 1
   .faq details p { padding-right: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
-  @view-transition { navigation: none; }
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation: none !important; transition-duration: 0.01ms !important; }
   .js .reveal { opacity: 1; transform: none; }
 }
+
+/* ---------- Home: "The studio" links to the About and Services pages ---------- */
+.paths { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.path { position: relative; display: flex; flex-direction: column; gap: 14px; padding: clamp(24px, 3vw, 36px); border-radius: 26px; background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow-sm); transition: transform 0.4s var(--ease), box-shadow 0.4s var(--ease), border-color 0.3s; }
+.path:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--line-2); }
+.path__ico { width: 44px; height: 44px; border-radius: 13px; display: inline-flex; align-items: center; justify-content: center; background: var(--brand-soft); color: var(--brand); }
+.path__ico .i { width: 20px; height: 20px; }
+.path__kicker { margin-top: 6px; font-size: 12.5px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-3); }
+.path__title { font-family: var(--display); font-size: clamp(22px, 2.2vw, 30px); font-weight: 600; letter-spacing: -0.035em; line-height: 1.15; max-width: 24ch; }
+.path__list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.path__list span { padding: 6px 12px; border-radius: 999px; background: var(--bg-2); border: 1px solid var(--line); font-size: 13.5px; color: var(--ink-2); }
+.path__go { margin-top: auto; padding-top: 18px; display: inline-flex; align-items: center; gap: 8px; color: var(--brand-ink); font-weight: 600; }
+.path__go .i { width: 16px; height: 16px; transition: transform 0.3s var(--ease); }
+.path:hover .path__go .i { transform: translateX(4px); }
+@media (max-width: 760px) { .paths { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .path, .path:hover { transform: none; } }

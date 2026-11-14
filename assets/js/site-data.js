@@ -18,7 +18,7 @@ window.CS_SITE = {
 
   /* Products, in display order. The first `featured: true` product gets the
      large card on the home page. To add a product:
-       1. copy products/chittill.html to products/<slug>.html and edit it,
+       1. copy the folder products/chittill/ to products/<slug>/ and edit its index.html,
        2. put its images in assets/img/<slug>/,
        3. add an entry below. */
   products: [
@@ -59,7 +59,7 @@ window.CS_SITE = {
         platform: 'Windows 10 & 11 · 64-bit',
         size: '' // optional, e.g. '96 MB'
       },
-      url: 'products/chittill.html'
+      url: 'products/chittill/'
     }
     /* Example of a second product (uncomment and edit):
     ,{
@@ -73,7 +73,7 @@ window.CS_SITE = {
       icon: 'assets/img/stockly/icon.webp',
       image: 'assets/img/stockly/main-sm.webp',
       tags: ['Multi-godown', 'GST'],
-      url: 'products/stockly.html'
+      url: 'products/stockly/'
     }
     */
   ]

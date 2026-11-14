@@ -88,45 +88,45 @@ const header = (R, page) => {
   return `<div class="hdr-slot" aria-hidden="true"></div>
   <header class="hdr" id="hdr">
     <div class="hdr__bar">
-      <a class="brand" href="${R}index.html" aria-label="CraftedSoft home"><img src="${R}assets/img/logo.svg" alt="" width="30" height="30"><span>Crafted<b>Soft</b></span></a>
+      <a class="brand" href="${R || './'}" aria-label="CraftedSoft home"><img src="${R}assets/img/logo.svg" alt="" width="30" height="30"><span>Crafted<b>Soft</b></span></a>
       <nav class="hdr__nav" aria-label="Main">
         <span class="hdr__ink" aria-hidden="true"></span>
-        <a href="${R}index.html"${cur('home')}>Home</a>
+        <a href="${R || './'}"${cur('home')}>Home</a>
         <div class="dd${inProducts ? ' is-current' : ''}" id="dd-products">
           <button type="button" aria-expanded="false" aria-controls="dd-panel">Products ${icon('down')}</button>
           <div class="mega" id="dd-panel">
             <div class="mega__main">
               <p class="mega__label">Products</p>
               ${items}
-              <a class="mega__all" href="${R}products.html">Browse all products ${icon('arrow')}</a>
+              <a class="mega__all" href="${R}products/">Browse all products ${icon('arrow')}</a>
             </div>
             <div class="mega__aside">
               ${preview}
-              <a class="mega__custom" href="${R}contact.html?interest=custom"><span class="ico">${icon('sparkles')}</span><span><b>Custom software</b><span>Built around how you work</span></span>${icon('arrow')}</a>
+              <a class="mega__custom" href="${R}contact/?interest=custom"><span class="ico">${icon('sparkles')}</span><span><b>Custom software</b><span>Built around how you work</span></span>${icon('arrow')}</a>
             </div>
           </div>
         </div>
-        <a href="${R}index.html#services">Services</a>
-        <a href="${R}index.html#about">About</a>
-        <a href="${R}contact.html"${cur('contact')}>Contact</a>
+        <a href="${R}services/"${cur('services')}>Services</a>
+        <a href="${R}about/"${cur('about')}>About</a>
+        <a href="${R}contact/"${cur('contact')}>Contact</a>
       </nav>
       <div class="hdr__act">
         ${themeSwitch}
-        <a class="btn btn--primary btn--sm hdr__cta" href="${R}contact.html">Book a demo</a>
+        <a class="btn btn--primary btn--sm hdr__cta" href="${R}contact/">Book a demo</a>
         <button type="button" class="icon-btn burger" aria-label="Open menu" aria-expanded="false" aria-controls="mnav">${icon('menu', 'i-open')}${icon('x', 'i-close')}</button>
       </div>
     </div>
     <nav class="mnav" id="mnav" aria-label="Mobile">
       <div class="mnav__links">
-        <a href="${R}index.html">Home</a>
-        <a href="${R}products.html">Products</a>
+        <a href="${R || './'}">Home</a>
+        <a href="${R}products/">Products</a>
         <div class="mnav__products">${products.map((p) => `<a href="${R}${p.url}"><img src="${R}${p.icon}" alt="" width="36" height="36"><span><b>${esc(p.name)}</b><span>${esc(p.tagline)}</span></span></a>`).join('')}</div>
-        <a href="${R}index.html#services">Services</a>
-        <a href="${R}index.html#about">About</a>
-        <a href="${R}contact.html">Contact</a>
+        <a href="${R}services/"${cur('services')}>Services</a>
+        <a href="${R}about/"${cur('about')}>About</a>
+        <a href="${R}contact/">Contact</a>
       </div>
       <div class="mnav__foot">
-        <a class="btn btn--primary btn--lg btn--block" href="${R}contact.html">Book a demo ${icon('arrow')}</a>
+        <a class="btn btn--primary btn--lg btn--block" href="${R}contact/">Book a demo ${icon('arrow')}</a>
         <div class="mnav__theme"><span>Appearance</span>${themeSwitch}</div>
       </div>
     </nav>
@@ -139,17 +139,17 @@ const footer = (R) => {
     C.whatsapp && `<a href="https://wa.me/${C.whatsapp}" target="_blank" rel="noopener">WhatsApp</a>`,
     C.phone && `<a href="tel:${C.phone.replace(/\s/g, '')}">${esc(C.phone)}</a>`,
     C.email && `<a href="mailto:${C.email}">${esc(C.email)}</a>`,
-    `<a href="${R}contact.html">Book a demo</a>`
+    `<a href="${R}contact/">Book a demo</a>`
   ].filter(Boolean)
   return `<footer class="ftr">
     <div class="wrap">
       <div class="ftr__top">
         <div class="ftr__brand">
-          <a class="brand" href="${R}index.html"><img src="${R}assets/img/logo.svg" alt="" width="30" height="30"><span>Crafted<b>Soft</b></span></a>
+          <a class="brand" href="${R || './'}"><img src="${R}assets/img/logo.svg" alt="" width="30" height="30"><span>Crafted<b>Soft</b></span></a>
           <p>A software studio building billing, inventory and business software around the way Indian businesses work.</p>
         </div>
-        <div class="ftr__col"><h4>Products</h4>${products.map((p) => `<a href="${R}${p.url}">${esc(p.name)}</a>`).join('')}<a href="${R}products.html">All products</a></div>
-        <div class="ftr__col"><h4>Company</h4><a href="${R}index.html#about">About us</a><a href="${R}index.html#commitments">Our commitments</a><a href="${R}index.html#services">Services</a><a href="${R}index.html#process">How we work</a></div>
+        <div class="ftr__col"><h4>Products</h4>${products.map((p) => `<a href="${R}${p.url}">${esc(p.name)}</a>`).join('')}<a href="${R}products/">All products</a></div>
+        <div class="ftr__col"><h4>Company</h4><a href="${R}about/">About us</a><a href="${R}services/">Services</a><a href="${R}contact/">Contact</a></div>
         <div class="ftr__col"><h4>Contact</h4>${contact.join('')}</div>
       </div>
       <div class="ftr__bottom"><span>© ${new Date().getFullYear()} CraftedSoft. All rights reserved.</span><span>Designed &amp; built in India</span></div>
@@ -176,7 +176,7 @@ const card = (R, p, featured) => {
           </div>
         </a>`
 }
-const customCard = (R) => `<a class="pcard pcard--custom reveal" href="${R}contact.html?interest=custom" data-cat="*">
+const customCard = (R) => `<a class="pcard pcard--custom reveal" href="${R}contact/?interest=custom" data-cat="*">
           <div class="pcard__body">
             <span class="plus">${icon('plus')}</span>
             <h3>Your product could be next</h3>
@@ -276,7 +276,7 @@ const spotlights = (R) =>
       const shots = p.imageDark
         ? `<img class="on-light" src="${big(R, p.image)}" alt="${esc(p.name)} screen" loading="lazy" width="2880" height="1800"><img class="on-dark" src="${big(R, p.imageDark)}" alt="${esc(p.name)} screen, dark theme" loading="lazy" width="2880" height="1800">`
         : `<img src="${big(R, p.image)}" alt="${esc(p.name)} screen" loading="lazy" width="2880" height="1800">`
-      const demo = `${R}contact.html?interest=demo&amp;product=${encodeURIComponent(p.name)}`
+      const demo = `${R}contact/?interest=demo&amp;product=${encodeURIComponent(p.name)}`
       return `<article class="spot${i % 2 ? ' spot--flip' : ''} reveal" id="p-${p.slug}" data-cat="${esc(p.category)}">
           <div class="spot__copy">
             <div class="spot__id"><img src="${R}${p.icon}" alt="" width="52" height="52"><div><b>${esc(p.name)}</b><span>${esc(p.category)} · ${esc(p.platform)}</span></div>${st}</div>
@@ -316,6 +316,7 @@ for (const file of htmlFiles(SITE_DIR)) {
   const depth = relative(SITE_DIR, file).split(sep).length - 1
   const R = '../'.repeat(depth)
   let src = readFileSync(file, 'utf8')
+  src = src.replace(/(<html[^>]*\sdata-root=")[^"]*"/, `$1${R}"`)
   const page = (src.match(/<body[^>]*data-page="([^"]*)"/) || [])[1] || ''
   const parts = {
     sprite: sprite(),
@@ -337,7 +338,7 @@ for (const file of htmlFiles(SITE_DIR)) {
     parts['download-hero'] = download.hero(pp)
     parts['download-trial'] = pp.download
       ? download.button(pp, 'Download free trial')
-      : `<a class="btn btn--outline" href="${R}contact.html?interest=demo&amp;product=${encodeURIComponent(pp.name)}">Start free trial</a>`
+      : `<a class="btn btn--outline" href="${R}contact/?interest=demo&amp;product=${encodeURIComponent(pp.name)}">Start free trial</a>`
     parts['download-cta'] = download.button(pp, pp.download?.label, 'btn btn--ghost btn--lg')
   }
   const out = stamp(src.replace(/(<!-- build:([\w-]+) -->)[\s\S]*?(<!-- \/build:\2 -->)/g, (m, open, name, close) =>
