@@ -59,6 +59,7 @@ const SPRITE = {
   calendar: '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>',
   layers: '<path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/>',
   store: '<path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/><path d="M22 7v3a2 2 0 0 1-2 2a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12a2 2 0 0 1-2-2V7"/>',
+  download: '<path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/>',
   scan: '<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M8 7v10"/><path d="M12 7v10"/><path d="M17 7v10"/>',
   send: '<path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/>'
 }
@@ -232,6 +233,22 @@ const productPills = (R) =>
     ...products.map((p) => `<label class="pill-radio"><input type="radio" name="product" value="${esc(p.name)}"><span><img src="${R}${p.icon}" alt="" width="20" height="20">${esc(p.name)}</span></label>`)
   ].join('')
 
+/* ---------- Download buttons (from product.download in site-data.js) ---------- */
+// A '#' or empty url is a placeholder: the button stays visible but main.js shows "coming soon" on click.
+const dlAttrs = (d) => {
+  const url = (d.url || '').trim()
+  if (!url || url === '#') return 'href="#" data-download-pending'
+  return `href="${esc(url)}"${/^https?:/.test(url) && !/\.(exe|msi|zip)$/i.test(url) ? ' target="_blank" rel="noopener"' : ''}`
+}
+const dlMeta = (d) => [d.version, d.platform, d.size].filter(Boolean).map(esc).join(' · ')
+const download = {
+  // Large two-line button for the product hero
+  hero: (p) => p.download ? `<a class="btn-dl" ${dlAttrs(p.download)}><span class="btn-dl__ico">${icon('download')}</span><span class="btn-dl__txt"><b>${esc(p.download.label || 'Download')}</b><small>${dlMeta(p.download)}</small></span></a>` : '',
+  // Regular button with an icon (plans card, spotlight)
+  button: (p, label, cls = 'btn btn--outline') => p.download ? `<a class="${cls} btn--dl" ${dlAttrs(p.download)}>${icon('download')}${esc(label || p.download.label || 'Download')}</a>` : ''
+}
+const pageProduct = (page) => products.find((p) => page === `product-${p.slug}`)
+
 /* ---------- Products page (v3): catalogue summary + spotlights ---------- */
 const big = (R, rel) => {
   const large = rel.replace(/-sm\.webp$/, '.webp')
@@ -267,7 +284,8 @@ const spotlights = (R) =>
             <p class="spot__sum">${esc(p.summary)}</p>
             ${(p.highlights || []).length ? `<ul class="spot__hl">${p.highlights.map((h) => `<li><span class="ico">${icon(h.icon || 'check')}</span><div><b>${esc(h.title)}</b><span>${esc(h.text)}</span></div></li>`).join('')}</ul>` : ''}
             ${(p.facts || []).length ? `<div class="spot__facts">${p.facts.map(([ic, t]) => `<span>${icon(ic)}${esc(t)}</span>`).join('')}</div>` : ''}
-            <div class="spot__actions"><a class="btn btn--primary" href="${R}${p.url}">Explore ${esc(p.name)} ${icon('arrow')}</a><a class="btn btn--outline" href="${demo}">Book a demo</a></div>
+            <div class="spot__actions"><a class="btn btn--primary" href="${R}${p.url}">Explore ${esc(p.name)} ${icon('arrow')}</a>${p.download ? download.button(p, 'Download') : `<a class="btn btn--outline" href="${demo}">Book a demo</a>`}</div>
+            ${p.download ? `<p class="spot__dlmeta">${dlMeta(p.download)}</p>` : ''}
           </div>
           <a class="spot__media" href="${R}${p.url}" tabindex="-1" aria-hidden="true">
             <span class="spot__window window"><span class="window__bar"><span><img src="${R}${p.icon}" alt="">${esc(p.name)}</span><span class="window__ctrl"><i></i><i></i><i></i></span></span><span class="window__screen">${shots}</span></span>
@@ -312,6 +330,15 @@ for (const file of htmlFiles(SITE_DIR)) {
     'product-pills': productPills(R),
     'catalog-summary': catalogSummary(R),
     spotlights: spotlights(R)
+  }
+  // Product pages: download buttons for the product this page belongs to (data-page="product-<slug>").
+  const pp = pageProduct(page)
+  if (pp) {
+    parts['download-hero'] = download.hero(pp)
+    parts['download-trial'] = pp.download
+      ? download.button(pp, 'Download free trial')
+      : `<a class="btn btn--outline" href="${R}contact.html?interest=demo&amp;product=${encodeURIComponent(pp.name)}">Start free trial</a>`
+    parts['download-cta'] = download.button(pp, pp.download?.label, 'btn btn--ghost btn--lg')
   }
   const out = stamp(src.replace(/(<!-- build:([\w-]+) -->)[\s\S]*?(<!-- \/build:\2 -->)/g, (m, open, name, close) =>
     name in parts ? `${open}\n${parts[name]}\n${close}` : m

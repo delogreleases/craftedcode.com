@@ -47,6 +47,18 @@ window.CS_SITE = {
         ['wifioff', 'Works offline'],
         ['calendar', '7-day free trial']
       ],
+      // Download button (product page, plans, Products page). Remove this block to hide all download buttons.
+      download: {
+        // DUMMY for now. Replace '#' with your GitHub release link, for example:
+        //   https://github.com/<user>/<repo>/releases/latest/download/ChitTill-Setup.exe   (starts the download)
+        //   https://github.com/<user>/<repo>/releases/latest                               (opens the release page)
+        // While it is '#', the button shows a "download coming soon" message instead.
+        url: '#',
+        label: 'Download for Windows',
+        version: 'v0.1.0',
+        platform: 'Windows 10 & 11 · 64-bit',
+        size: '' // optional, e.g. '96 MB'
+      },
       url: 'products/chittill.html'
     }
     /* Example of a second product (uncomment and edit):

@@ -29,6 +29,13 @@ It rewrites only the parts between `<!-- build:name -->` and `<!-- /build:name -
 
 - **Contact details:** `contact` in `site-data.js`. The email there is a placeholder. Add a WhatsApp number
   (country code + number, digits only, e.g. `919876543210`) and the contact form sends enquiries to WhatsApp.
+- **Download button:** each product's `download` block in `site-data.js` (`url`, `label`, `version`,
+  `platform`, `size`). `url: '#'` is a placeholder: the buttons show a "download coming soon" message. Put your
+  GitHub release link there and rebuild:
+  - `https://github.com/<user>/<repo>/releases/latest/download/ChitTill-Setup.exe` starts the download directly.
+  - `https://github.com/<user>/<repo>/releases/latest` opens the release page in a new tab.
+
+  Remove the `download` block to hide that product's download buttons.
 - **Add a product:**
   1. Put its images in `assets/img/<slug>/` (an icon, plus screenshots at 2880×1800 and 1440×900).
   2. Copy `products/chittill.html` to `products/<slug>.html` and change the text and images.

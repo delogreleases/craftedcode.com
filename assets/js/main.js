@@ -223,6 +223,26 @@
     map.forEach((_, id) => { const s = document.getElementById(id); if (s) sio.observe(s) })
   }
 
+  /* ---------- Download buttons whose link isn't set yet (url: '#' in site-data.js) ---------- */
+  const pending = $$('[data-download-pending]')
+  if (pending.length) {
+    const root = doc.dataset.root || ''
+    let toast, timer
+    const show = () => {
+      if (!toast) {
+        toast = document.createElement('div')
+        toast.className = 'toast'
+        toast.setAttribute('role', 'status')
+        toast.innerHTML = `<svg class="i" aria-hidden="true"><use href="#i-download"/></svg><span>The download is coming soon. Meanwhile, we'll set it up for you in a free demo.</span><a href="${root}contact.html?interest=demo">Book a demo</a>`
+        document.body.append(toast)
+      }
+      requestAnimationFrame(() => toast.classList.add('is-on'))
+      clearTimeout(timer)
+      timer = setTimeout(() => toast.classList.remove('is-on'), 5000)
+    }
+    pending.forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); show() }))
+  }
+
   /* ---------- Manifesto: words light up as you scroll ---------- */
   $$('[data-manifesto]').forEach((el) => {
     if (reduceMotion) return
