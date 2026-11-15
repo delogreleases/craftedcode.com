@@ -178,17 +178,86 @@
     update()
   }
 
-  /* ---------- Product filters ---------- */
-  const filters = $('#filters')
-  if (filters) {
-    filters.addEventListener('click', (e) => {
-      const b = e.target.closest('button')
-      if (!b) return
-      $$('button', filters).forEach((x) => x.setAttribute('aria-pressed', String(x === b)))
-      const f = b.dataset.f
-      $$('.pgrid .pcard').forEach((c) => { c.style.display = f === 'All' || c.dataset.cat === f || c.dataset.cat === '*' ? '' : 'none' })
+  /* ---------- Products catalogue: search + industry chips ---------- */
+  const grid = $('#shop-grid')
+  if (grid) {
+    const q = $('#shop-q')
+    const chips = $$('.cchip')
+    const cards = $$('.pc[data-search]', grid).filter((c) => c.dataset.search !== '*')
+    const build = $('.pc--build', grid)
+    const count = $('#shop-count')
+    const empty = $('#shop-empty')
+    let industry = '*'
+    const apply = () => {
+      const terms = q.value.trim().toLowerCase().split(/\s+/).filter(Boolean)
+      let shown = 0
+      cards.forEach((c) => {
+        const ok = (industry === '*' || c.dataset.industry === industry) && terms.every((t) => c.dataset.search.includes(t))
+        c.hidden = !ok
+        if (ok) shown++
+      })
+      if (build) build.hidden = shown === 0
+      empty.hidden = shown > 0
+      $('#shop-empty-q').textContent = q.value.trim() || (chips.find((c) => c.dataset.industry === industry)?.firstChild.textContent ?? '')
+      count.textContent = `${shown} of ${cards.length} product${cards.length === 1 ? '' : 's'}`
+      // Keep the filters in the address only as ?q= / ?industry= (shareable), never as a #fragment.
+      const params = new URLSearchParams(location.search)
+      q.value.trim() ? params.set('q', q.value.trim()) : params.delete('q')
+      industry !== '*' ? params.set('industry', industry) : params.delete('industry')
+      const qs = params.toString()
+      history.replaceState(history.state, '', location.pathname + (qs ? `?${qs}` : ''))
+      syncAudience()
+    }
+    // Hero switcher ("All products / I run a shop / I run a restaurant"): same filter as the chips, with a sliding pill.
+    const auds = $$('.aud')
+    const audPill = $('.aud__pill')
+    function syncAudience() {
+      let on = null
+      auds.forEach((a) => { const pressed = a.dataset.industry === industry; a.setAttribute('aria-pressed', String(pressed)); if (pressed) on = a })
+      if (audPill) {
+        audPill.style.opacity = on ? '1' : '0'
+        if (on) { audPill.style.width = `${on.offsetWidth}px`; audPill.style.transform = `translateX(${on.offsetLeft - 6}px)` }
+      }
+    }
+    const setIndustry = (value) => {
+      industry = value
+      chips.forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.industry === value)))
+      apply()
+    }
+    chips.forEach((c) => c.addEventListener('click', () => setIndustry(c.dataset.industry)))
+    auds.forEach((a) => a.addEventListener('click', () => setIndustry(a.dataset.industry)))
+    addEventListener('resize', syncAudience)
+    q.addEventListener('input', apply)
+    $('#shop-clear')?.addEventListener('click', () => {
+      q.value = ''; industry = '*'
+      chips.forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.industry === '*')))
+      apply(); q.focus()
     })
+    // "/" jumps to the search box, like most product catalogues.
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '/' && !/input|textarea|select/i.test(document.activeElement?.tagName || '')) { e.preventDefault(); q.focus() }
+      if (e.key === 'Escape' && document.activeElement === q && q.value) { q.value = ''; apply() }
+    })
+    // Start from a shared link (?q=gst&industry=Retail).
+    const start = new URLSearchParams(location.search)
+    if (start.get('q')) q.value = start.get('q')
+    const si = start.get('industry')
+    if (si && chips.some((c) => c.dataset.industry === si)) {
+      industry = si
+      chips.forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.industry === si)))
+    }
+    apply()
+    // The bar gets its glass background once it sticks under the header.
+    const bar = $('.shop-bar')
+    if (bar) {
+      const stickAt = () => (hdr ? hdr.offsetHeight : 0)
+      const onS = () => bar.classList.toggle('is-stuck', bar.getBoundingClientRect().top <= stickAt() + 1)
+      addEventListener('scroll', onS, { passive: true }); onS()
+    }
   }
+
+  /* ---------- Footer: back to top ---------- */
+  $$('[data-to-top]').forEach((b) => b.addEventListener('click', () => scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' })))
 
   /* ---------- Product hero stage: flattens as you scroll ---------- */
   const stage = $('.stage')
@@ -273,24 +342,88 @@
     map.forEach((_, id) => { const s = document.getElementById(id); if (s) sio.observe(s) })
   }
 
-  /* ---------- Download buttons whose link isn't set yet (url: '#' in site-data.js) ---------- */
-  const pending = $$('[data-download-pending]')
-  if (pending.length) {
-    const root = doc.dataset.root || ''
-    let toast, timer
-    const show = () => {
-      if (!toast) {
-        toast = document.createElement('div')
-        toast.className = 'toast'
-        toast.setAttribute('role', 'status')
-        toast.innerHTML = `<svg class="i" aria-hidden="true"><use href="#i-download"/></svg><span>The download is coming soon. Meanwhile, we'll set it up for you in a free demo.</span><a href="${toFile(root + 'contact/?interest=demo')}">Book a demo</a>`
-        document.body.append(toast)
-      }
-      requestAnimationFrame(() => toast.classList.add('is-on'))
-      clearTimeout(timer)
-      timer = setTimeout(() => toast.classList.remove('is-on'), 5000)
+  /* ---------- Small notice at the bottom of the screen ---------- */
+  const root = doc.dataset.root || ''
+  let toast, toastTimer
+  const showToast = (iconId, text, linkText, href) => {
+    if (!toast) {
+      toast = document.createElement('div')
+      toast.className = 'toast'
+      toast.setAttribute('role', 'status')
+      document.body.append(toast)
     }
-    pending.forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); show() }))
+    toast.innerHTML = `<svg class="i" aria-hidden="true"><use href="#i-${iconId}"/></svg><span>${text}</span>${linkText ? `<a href="${href}">${linkText}</a>` : ''}`
+    requestAnimationFrame(() => toast.classList.add('is-on'))
+    clearTimeout(toastTimer)
+    toastTimer = setTimeout(() => toast.classList.remove('is-on'), 5000)
+  }
+
+  /* ---------- Placeholders until the real links are set in site-data.js ---------- */
+  // Download buttons with url '#'
+  $$('[data-download-pending]').forEach((a) => a.addEventListener('click', (e) => {
+    e.preventDefault()
+    showToast('download', 'The download is coming soon. Meanwhile, we’ll set it up for you in a free demo.', 'Book a demo', toFile(root + 'contact/?interest=demo'))
+  }))
+  // WhatsApp button without a number yet
+  $$('[data-wa-pending]').forEach((a) => a.addEventListener('click', (e) => {
+    e.preventDefault()
+    showToast('message', 'Our WhatsApp line is coming soon. Send us a message here and we’ll reply within a working day.', 'Contact us', toFile(root + 'contact/'))
+  }))
+
+  /* ---------- Floating WhatsApp button ---------- */
+  const fab = $('.wa-fab')
+  if (fab) {
+    // The chat opens with a friendly first line that mentions the page they were reading.
+    const num = fab.dataset.wa
+    if (num) {
+      const product = document.title.split('·')[0].trim()
+      const msg = document.body.dataset.page.startsWith('product-')
+        ? `Hi CraftedSoft! I'd like to know more about ${product}.`
+        : 'Hi CraftedSoft! I have a question about your software.'
+      fab.href = `https://wa.me/${num}?text=${encodeURIComponent(msg)}`
+    }
+    // Peek the "Questions? Chat with us" bubble once per visit, a few seconds in.
+    let peeked = false
+    try { peeked = sessionStorage.getItem('cs-wa-peek') === '1' } catch (e) { /* storage blocked */ }
+    if (!peeked && !reduceMotion && finePointer) {
+      setTimeout(() => {
+        fab.classList.add('is-peek')
+        try { sessionStorage.setItem('cs-wa-peek', '1') } catch (e) { /* ignore */ }
+        setTimeout(() => fab.classList.remove('is-peek'), 4500)
+      }, 5000)
+    }
+  }
+
+  /* ---------- Analytics events (only if an analytics service is set in site-data.js) ---------- */
+  const track = (name) => {
+    try {
+      if (typeof window.plausible === 'function') window.plausible(name, { props: { page: location.pathname } })
+      if (typeof window.gtag === 'function') window.gtag('event', name.toLowerCase().replace(/\s+/g, '_'), { page_path: location.pathname })
+    } catch (e) { /* never let analytics break the page */ }
+  }
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest && e.target.closest('a, button')
+    if (!a) return
+    if (a.dataset.track) return track(a.dataset.track)
+    if (a.matches('.btn-dl, .btn--dl')) return track('Download')
+    const href = a.getAttribute('href') || ''
+    if (/contact\/(index\.html)?\?interest=demo/.test(href) || /book a (free )?demo/i.test(a.textContent)) return track('Book demo')
+    if (/contact\/(index\.html)?\?interest=custom/.test(href)) return track('Custom project')
+  })
+  $('#contact-form')?.addEventListener('submit', () => track('Contact form'))
+
+  /* ---------- Legal pages: highlight the section being read ---------- */
+  const tocLinks = $$('.legal-toc a')
+  if (tocLinks.length) {
+    const byId = new Map(tocLinks.map((a) => [a.getAttribute('href').slice(1), a]))
+    const lio = new IntersectionObserver((entries) => {
+      entries.forEach((en) => {
+        if (!en.isIntersecting) return
+        tocLinks.forEach((a) => a.classList.remove('is-active'))
+        byId.get(en.target.id)?.classList.add('is-active')
+      })
+    }, { rootMargin: '-30% 0px -60% 0px' })
+    byId.forEach((_, id) => { const s = document.getElementById(id); if (s) lio.observe(s) })
   }
 
   /* ---------- Manifesto: words light up as you scroll ---------- */
@@ -416,4 +549,40 @@
       note.className = 'form__note is-ok'
     })
   }
+})()
+
+
+/* ---------- Accent colour picker ----------
+   Swatches come from accents in site-data.js (built into every page). The choice is stored in localStorage
+   'cs-accent' and re-applied before first paint by the small script in each page's <head>. */
+;(function () {
+  const d = document.documentElement
+  const swatches = document.querySelectorAll('[data-accent]')
+  if (!swatches.length) return
+  const def = swatches[0].dataset.accent.toLowerCase()
+  const mark = (c) => swatches.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.accent.toLowerCase() === c)))
+  let current = def
+  try {
+    const saved = localStorage.getItem('cs-accent')
+    if (saved && /^#[0-9a-f]{6}$/i.test(saved)) current = saved.toLowerCase()
+  } catch (e) { /* storage blocked */ }
+  mark(current)
+  // Header button opens the colour card; it stays open while trying colours, closes on outside click / Esc.
+  const btn = document.querySelector('.accbtn')
+  const pop = document.getElementById('accpop')
+  const show = (v) => { if (!btn) return; pop.hidden = !v; btn.setAttribute('aria-expanded', String(v)) }
+  if (btn) {
+    btn.addEventListener('click', (e) => { e.stopPropagation(); show(pop.hidden) })
+    document.addEventListener('click', (e) => { if (!pop.hidden && !e.target.closest('.accdd')) show(false) })
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !pop.hidden) { show(false); btn.focus() } })
+  }
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest && e.target.closest('[data-accent], [data-accent-reset]')
+    if (!b) return
+    const c = (b.dataset.accent || def).toLowerCase()
+    if (c === def) d.style.removeProperty('--brand')
+    else d.style.setProperty('--brand', c)
+    try { c === def ? localStorage.removeItem('cs-accent') : localStorage.setItem('cs-accent', c) } catch (err) { /* storage blocked */ }
+    mark(c)
+  })
 })()
