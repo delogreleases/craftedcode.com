@@ -1,0 +1,19 @@
+{
+  "name": "CraftedSoft",
+  "short_name": "CraftedSoft",
+  "icons": [
+    {
+      "src": "assets/img/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/img/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "theme_color": "#5b49d6",
+  "background_color": "#ffffff",
+  "display": "browser"
+}
