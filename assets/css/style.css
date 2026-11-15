@@ -1787,3 +1787,17 @@ body:has(main > :is(.whero, .phero, .cat-hero, .shop-hero, .legal-hero, .prod-he
 @media (max-width: 600px) { .wprice .wprice__list { grid-template-columns: minmax(0, 1fr); } }
 .wprice__intro .link { display: inline; }
 .wprice__intro .link .i { display: inline-block; vertical-align: -3px; margin-left: 4px; }
+
+/* Legal pages: contents list + article centred as one block (no empty band on the right),
+   list not clipped by rounded corners, and easier-to-read list text */
+@media (min-width: 1041px) {
+  .legal { grid-template-columns: 270px minmax(0, 860px); justify-content: center; gap: clamp(40px, 5vw, 88px); }
+  .legal .prose { max-width: none; }
+  .legal-toc { border-radius: 0; padding: 4px 4px 4px 2px; }
+}
+.legal-toc__label { color: var(--ink-2); }
+.legal-toc a { color: var(--ink-2); }
+.legal-toc a span { color: var(--ink-3); opacity: 1; }
+.legal-toc a:hover { color: var(--ink); background: var(--tint-1); }
+.legal-toc a.is-active { color: var(--ink); font-weight: 600; }
+.legal-toc a.is-active span { color: var(--brand-ink); }
